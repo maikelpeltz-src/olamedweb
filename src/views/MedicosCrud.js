@@ -14,11 +14,14 @@ import { connect } from 'react-redux';
 import { medicoAuth, medicoCriar, medicoAtualizar, medicoSetField } from '../actions/';
 import AnimatedModal from '../App/components/AnimatedModal';
 import { store } from '../../src/index.js';
-import Notifications from '../App/components/Notifications';
 import axios from 'axios';
 import { styleLine, styleDtPicker, styleBtCrm } from './css/crud_medicos';
+import NotificationSystem from 'react-notification-system';
 
 registerLocale('pt-BR', pt)
+
+var consultaFalha = '';
+consultaFalha = React.createRef()
 
 class MaskWithValidation extends BaseFormControl {
     constructor(props) {
@@ -61,12 +64,17 @@ class MedicosCrud extends React.Component {
             id: localStorage.getItem('medico_editar'),
             verificarDados: 0,
             consultaErro: 0,
-            variant: 'inverse',
-            placement: 'top-right',
-            autoDismiss: true,
-            animation: {type: 'bounce', direction: 'top'},
-            message: 'Bootstrap Growl Turning standard Bootstrap alerts into awesome notification'
         }
+    }
+    addNotificationFalhaCrm() {
+
+        const notification = consultaFalha.current;
+        notification.addNotification({
+            message: 'Dados inválidos, verifique se o CRM, UF, CPF ou Data Nasc. estão incorretos',
+            level: 'error',
+            position: 'tr',
+            autoDismiss: 0
+        });
     }
     componentDidMount() {
 
@@ -125,7 +133,7 @@ class MedicosCrud extends React.Component {
                 'Content-Type': 'text/xml;charset=UTF-8',
             };
         } else {
-            this.sweetAlertHandler({ title: 'Dados incompletos', type: 'error', text: 'CRM, CPF, UF e Data De Nascimento devem estar preenchidos!' })
+            this.addNotificationFalhaCrm()
         }
     }
 
@@ -157,6 +165,7 @@ class MedicosCrud extends React.Component {
                     verificarDados: 0,
                     consultaErro: 1,
                 });
+                this.addNotificationFalhaCrm()
                 //this.sweetAlertHandler({ title: 'Dados inválidos!', type: 'error', text: ' Verifique se o CRM, CPF, UF ou Data De Nascimento foram digitados corretamente!' })
             }
         } catch (error) {
@@ -264,13 +273,10 @@ class MedicosCrud extends React.Component {
         await this.props.medicoCriar('adsasd');
     }
 
-    mensagemValidacaoErro(){
-        document.getElementById("messagemUI").click();
-    }
-
     render() {
         return (
             <Aux>
+            <NotificationSystem ref={consultaFalha} style={style} />
                 <Row>
                     <Col>
                         <Card>
@@ -279,7 +285,6 @@ class MedicosCrud extends React.Component {
                                 {this.state.cancelar > 0 ? <Redirect to="/medicos" /> : null}
                             </Card.Header>
                             <Card.Body>
-                                <Notifications notification={this.state}></Notifications>
                                 <ValidationForm onSubmit={this.handleSubmit} onErrorSubmit={this.handleErrorSubmit}>
                                     <Form.Row>
                                         <Form.Group as={Col} md="6">
@@ -321,12 +326,12 @@ class MedicosCrud extends React.Component {
                                                 className='form-control'
                                                 mask={[/[0-9]/, /[0-9]/, /[0-9]/, '.', /[0-9]/, /[0-9]/, /[0-9]/, '.', /[0-9]/, /[0-9]/, /[0-9]/, '-', /[0-9]/, /[0-9]/]}
                                                 placeholder="CPF"
-                                                minLength = "14"
+                                                minLength="14"
                                                 errorMessage="Campo de CPF é obrigatório"
                                                 required value={this.props.medico.cpf}
                                                 onChange={(e) => this.handleChange(e, 'cpf', e.target.value)}
                                                 autoComplete="off"
-                                                
+
                                             />
                                         </Form.Group>
                                         <Form.Group as={Col} md="6">
@@ -350,15 +355,9 @@ class MedicosCrud extends React.Component {
                                                             <span className="spinner-border spinner-border-sm mr-1" role="status" />
                                                             : null}
                                                         {this.state.verificarDados != 0 ?
-                                                            'Validando...' : 'Validar dados'
+                                                            'Consultando...' : 'Consultar dados'
                                                         }
-                                                         {this.state.consultaErro > 0 ?
-                                                            this.mensagemValidacaoErro()
-                                                            : null
-                                                        }
-                                                 
                                                     </Button>
-                                                    <Button onClick={(e) => {this.VaiBotao()}}>Vai</Button>
                                                 </Col>
                                             </Row>
                                         </Form.Group>
@@ -499,6 +498,16 @@ class MedicosCrud extends React.Component {
                 </Row>
             </Aux>
         );
+    }
+}
+
+const style = {
+    NotificationItem: { // Override the notification item
+
+        error: {
+            backgroundColor: '#FA6262',
+            color: 'white',
+        },
     }
 }
 
