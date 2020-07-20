@@ -54,7 +54,10 @@ class MedicosListar extends React.Component {
     componentDidMount() {
         this.props.medicosLista();
         var this_ = this;
-        loaded = 0;
+        loaded = 0;        
+    }
+
+    componentDidUpdate() {
         this.createButtonOnDiv();
     }
 
@@ -77,9 +80,7 @@ class MedicosListar extends React.Component {
             });
         }
     }
-    //###########################################################################################
-    //#######Adicionar botao dentro da Datable para editar, habilitar ou desabilitar um medico ##
-    //###########################################################################################
+    
     createButtonOnDiv() {
         //Funcao para entrar em modo edição, mudar o estado vai redirecionar pra tela de crud!
         const func = this.props.medicoSetAtivo;
@@ -91,95 +92,6 @@ class MedicosListar extends React.Component {
             });
         }
 
-        //################################################################################ 
-        //########### ADICIONAR BOTAO NA GRID, NO INPUT DO SEARCH #######################
-        //################################################################################ 
-        var search = document.getElementsByClassName('form-control input-sm');
-        for (var i = 0; i < search.length; i++) {
-            (function (index) {
-                search[index].addEventListener("input", function (e) {
-                    var testElements = document.getElementsByClassName("myBtn");
-                    var i;
-                    for (i = 0; i < testElements.length; i++) {
-                        let idDiv = testElements[i].id;
-                        var dateParts = testElements[i].id.split("|");
-                        let idMedico = dateParts[0].trim();
-                        let ativoMedico = dateParts[1].trim();
-                        const element = (
-                            <div>
-                                <button className="btn btn-primary text-center btn-editar" onClick={(e) => medicoList(idMedico, 1)}>{"\u00a0"} {"\u00a0"} Editar {"\u00a0"} {"\u00a0"} </button>
-                                <ButtonGrid function={func}
-                                    id={idMedico}
-                                    ativo={ativoMedico} />
-                            </div>
-                        );
-                        ReactDOM.render(element, testElements[i])
-                    }
-                })
-            })(i);
-        }
-
-        //################################################################################ 
-        //########### ADICIONAR BOTAO NA GRID, NO INPUT DO SEARCH #######################
-        //################################################################################ 
-        var search = document.getElementsByClassName('form-control input-sm');
-        for (var i = 0; i < search.length; i++) {
-            (function (index) {
-                search[index].addEventListener("change", function (e) {
-                    var testElements = document.getElementsByClassName("myBtn");
-                    var i;
-                    for (i = 0; i < testElements.length; i++) {
-                        let idDiv = testElements[i].id;
-                        var dateParts = testElements[i].id.split("|");
-                        let idMedico = dateParts[0].trim();
-                        let ativoMedico = dateParts[1].trim();
-                        const element = (
-                            <div>
-                                <button className="btn btn-primary text-center btn-editar" onClick={(e) => medicoList(idMedico, 1)}>{"\u00a0"} {"\u00a0"} Editar {"\u00a0"} {"\u00a0"} </button>
-                                <ButtonGrid function={func}
-                                    id={idMedico}
-                                    ativo={ativoMedico} />
-                            </div>
-                        );
-                        ReactDOM.render(element, testElements[i])
-                    }
-                })
-            })(i);
-        }
-
-
-        //################################################################################ 
-        //########### ADICIONAR BOTAO NA GRID, NO BOTAO DA PAGINACAO #####################
-        //################################################################################ 
-        var paginacao = document.getElementsByClassName('paginate_button');
-        const func2 = this.props.medicoSetAtivo;
-        for (var i = 0; i < paginacao.length; i++) {
-            (function (index) {
-                paginacao[index].addEventListener("click", function () {
-                    var testElements = document.getElementsByClassName("myBtn");
-                    var i;
-                    for (i = 0; i < testElements.length; i++) {
-                        let idDiv = testElements[i].id;
-                        var dateParts = testElements[i].id.split("|");
-                        let idMedico = dateParts[0].trim();
-                        let ativoMedico = dateParts[1].trim();
-                        const element = (
-                            <div>
-                                <button className="btn btn-primary text-center btn-editar" onClick={(e) => medicoList(idMedico, 1)}>{"\u00a0"} {"\u00a0"} Editar {"\u00a0"} {"\u00a0"} </button>
-                                <ButtonGrid function={func2}
-                                    id={idMedico}
-                                    ativo={ativoMedico} />
-                            </div>
-                        );
-                        ReactDOM.render(element, testElements[i])
-                    }
-                })
-            })(i);
-        }
-
-        //################################################################################ 
-        //########### ADICIONAR BOTAO NA GRID, AO INICIAR A PAGINA #######################
-        //################################################################################ 
         var divsButtons = document.getElementsByClassName("myBtn");
         var i;
         for (i = 0; i < divsButtons.length; i++) {
@@ -190,7 +102,7 @@ class MedicosListar extends React.Component {
             const element = (
                 <div>
                     <button className="btn btn-primary text-center btn-editar" onClick={(e) => medicoList(idMedico, 1)}>{"\u00a0"} {"\u00a0"} Editar {"\u00a0"} {"\u00a0"} </button>
-                    <ButtonGrid function={this.props.medicoSetAtivo}
+                    <ButtonGrid function={func}
                         id={idMedico}
                         ativo={ativoMedico} />
                 </div>
@@ -199,10 +111,14 @@ class MedicosListar extends React.Component {
             ReactDOM.render(element, divsButtons[i])
         }
     }
-    componentDidUpdate() {
-        this.createButtonOnDiv();
-    }
+    
 
+    
+    addEvent(){
+        $('#data-table-responsive').on( 'draw.dt', () => {
+            this.createButtonOnDiv();
+        })
+    }
 
     //#####################################################################
     //######## Cria e carrega a DataTable #################################
@@ -328,15 +244,27 @@ class MedicosListar extends React.Component {
         }
     }
 
+    carregaEvents(){
+        if(this.props.medicos[0] === undefined) {
+            //sem dados
+        }
+        else{
+            this.addEvent();
+        }
+    
+    }
+
     render() {
         return (
             <Aux>
                 <Row>
                     <Col>
                         <Card.Header>
+                         
                             <Button className="btn btn-success btn-cadastrar" href='/medicos/cadastrar' onClick={(e) => this.onClickMedicoList(e, 0)}> Cadastrar </Button>
                             {this.rediretCrud()}
                             {this.props.medicos[0] === undefined ? null : this.atable()}
+                            {this.carregaEvents()}
                             <Card.Title as="h5">
                                 Médicos
                             </Card.Title>
