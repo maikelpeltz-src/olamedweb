@@ -79,6 +79,7 @@ function getAnimation(type) {
 }
 
 class Notifications extends React.Component {
+
     render(){
             return (
                 <Aux>
@@ -86,7 +87,7 @@ class Notifications extends React.Component {
                         <ToastConsumer>
                             {({add}) => {
                                 return (
-                                    <span onClick={() => add(this.props.notification.message, {
+                                    <span id = "messagemUI" onClick={() => add(this.props.notification.message, {
                                         appearance: this.props.notification.variant,
                                         autoDismiss: this.props.notification.autoDismiss
                                     })}>
@@ -99,6 +100,8 @@ class Notifications extends React.Component {
                 </Aux>
             );
     }
+
+   
 }
 
 export default Notifications;

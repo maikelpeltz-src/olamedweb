@@ -264,6 +264,10 @@ class MedicosCrud extends React.Component {
         await this.props.medicoCriar('adsasd');
     }
 
+    mensagemValidacaoErro(){
+        document.getElementById("messagemUI").click();
+    }
+
     render() {
         return (
             <Aux>
@@ -275,6 +279,7 @@ class MedicosCrud extends React.Component {
                                 {this.state.cancelar > 0 ? <Redirect to="/medicos" /> : null}
                             </Card.Header>
                             <Card.Body>
+                                <Notifications notification={this.state}></Notifications>
                                 <ValidationForm onSubmit={this.handleSubmit} onErrorSubmit={this.handleErrorSubmit}>
                                     <Form.Row>
                                         <Form.Group as={Col} md="6">
@@ -347,13 +352,13 @@ class MedicosCrud extends React.Component {
                                                         {this.state.verificarDados != 0 ?
                                                             'Validando...' : 'Validar dados'
                                                         }
-                                                        {this.state.consultaErro > 0 ?
-                                                        <Notifications notification={this.state}></Notifications>
-                                                        : null
+                                                         {this.state.consultaErro > 0 ?
+                                                            this.mensagemValidacaoErro()
+                                                            : null
                                                         }
-
-                                                        
+                                                 
                                                     </Button>
+                                                    <Button onClick={(e) => {this.VaiBotao()}}>Vai</Button>
                                                 </Col>
                                             </Row>
                                         </Form.Group>
