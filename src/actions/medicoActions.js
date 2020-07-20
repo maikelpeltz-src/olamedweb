@@ -80,7 +80,6 @@ export const medicoAtualizar = (id) => dispatch => {
             return true;
         })
         .catch((error) => {
-            alert('catch');
             return false;
         }))
 }
@@ -137,7 +136,6 @@ export const medicoAuth = () => dispatch => {
             .then((result) => {
                 return result.user.uid;
             }).catch((erro) => {
-                alert('NAO CRIOU AUTENTICACAO');
                 return '';
             })
     )
@@ -156,7 +154,6 @@ export const medicoSetAtivo = (idMedico, estado) => dispatch => {
             return true;
         })
         .catch((error) => {
-            alert('catch');
             return false;
         }))
 }

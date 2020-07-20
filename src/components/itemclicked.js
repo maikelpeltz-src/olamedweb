@@ -13,7 +13,6 @@ class itemclicked extends React.Component {
         })
 	}
     onClickMedicoList = () => {
-        alert('oiii');
         //this.props.setCurrent(this.props.currentMedico)
         this.setState({
             clicado: 1

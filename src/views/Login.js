@@ -1,5 +1,7 @@
 import React from 'react';
 import {NavLink, Redirect} from 'react-router-dom';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 
 import { connect } from 'react-redux';
 
@@ -24,7 +26,16 @@ class Login extends React.Component {
 
     componentDidMount() {
 
-	}
+    }
+
+    sweetAlertHandler = (alert) => {
+        const MySwal = withReactContent(Swal);
+        MySwal.fire({
+            title: alert.title,
+            text: alert.text,
+            type: alert.type
+        });
+    };
 
     onChangeHandler(field, value) {
         this.setState({
@@ -49,10 +60,8 @@ class Login extends React.Component {
         this.setState({ isLoading: true, message: '' });
 
         const { email, password } = this.state;
-        alert('tryLogin')
         this.props.tryLogin(email, password)
             .then(user => {
-                alert('SUCESSO!')
                 if (user) {
                     this.setState({usuarioLogado: 1});
                     return null;
@@ -60,7 +69,7 @@ class Login extends React.Component {
                 return null;
             })
             .catch(error => {
-                alert('ERRO!')
+                this.sweetAlertHandler({ title: 'Falha no Login!', type: 'error', text: ' Verifique se o Email ou Senhas estão corretos!' })
                 this.setState({
                     isLoading: false,
                     message: this.getMessageByErrorCode(error.code)

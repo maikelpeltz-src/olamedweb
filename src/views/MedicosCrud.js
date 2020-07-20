@@ -14,8 +14,9 @@ import { connect } from 'react-redux';
 import { medicoAuth, medicoCriar, medicoAtualizar, medicoSetField } from '../actions/';
 import AnimatedModal from '../App/components/AnimatedModal';
 import { store } from '../../src/index.js';
+import Notifications from '../App/components/Notifications';
 import axios from 'axios';
-import {styleLine, styleDtPicker, styleBtCrm} from './css/crud_medicos';
+import { styleLine, styleDtPicker, styleBtCrm } from './css/crud_medicos';
 
 registerLocale('pt-BR', pt)
 
@@ -58,19 +59,25 @@ class MedicosCrud extends React.Component {
             startDate: new Date(),
             medico: '',
             id: localStorage.getItem('medico_editar'),
-            verificarDados: 0
+            verificarDados: 0,
+            consultaErro: 0,
+            variant: 'inverse',
+            placement: 'top-right',
+            autoDismiss: true,
+            animation: {type: 'bounce', direction: 'top'},
+            message: 'Bootstrap Growl Turning standard Bootstrap alerts into awesome notification'
         }
     }
     componentDidMount() {
 
     }
-
     chamarSoap() {
         var medico = store.getState().medico;
         if (medico.cpf != "" && medico.crm != "" && medico.cpf != "" && medico.dataNasc != "") {
             this.setState({
                 verificarDados: 1,
             });
+            var uf = medico.uf.toUpperCase();
             let envelope =
                 `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://servico.cfm.org.br/">
            <soapenv:Header/>
@@ -78,7 +85,7 @@ class MedicosCrud extends React.Component {
                <ser:ConsultaCompleta>
                  <crm>${medico.crm}</crm>
                  <!--Optional:-->
-                 <uf>${medico.uf}</uf>
+                 <uf>${uf}</uf>
                  <!--Optional:-->
                  <cpf>${medico.cpf}</cpf>
                  <!--Optional:-->
@@ -105,44 +112,55 @@ class MedicosCrud extends React.Component {
             xmlhttp.onreadystatechange = () => {
                 if (xmlhttp.readyState == 4) {
                     if (xmlhttp.status == 200) {
-                        //console.log(xmlhttp.response);
-                        alert(xmlhttp.response);
+                        console.log(xmlhttp.response)
                         this.loadXml(xmlhttp.response);
-
-                    }
-                    else {
-                        alert('Erro na chamada!');
+                    } else {
+                        this.sweetAlertHandler({ title: 'Dados inválidos!', type: 'error', text: ' Verifique se o CRM, CPF, UF ou Data De Nascimento foram digitados corretamente!' })
                     }
                 }
             }
-
             xmlhttp.send(sr);
-
             const sampleHeaders = {
                 'user-agent': 'sampleTest',
                 'Content-Type': 'text/xml;charset=UTF-8',
             };
-        }else{
-            alert("Complete os campos corretamente")
+        } else {
+            this.sweetAlertHandler({ title: 'Dados incompletos', type: 'error', text: 'CRM, CPF, UF e Data De Nascimento devem estar preenchidos!' })
         }
     }
 
     loadXml(xmlText) {
-        console.log(xmlText);
-        var XMLParser = require('react-xml-parser');
-        var xml = new XMLParser().parseFromString(xmlText);
-        var especialidades = xml.getElementsByTagName('especialidade')[0].value;
-        var nome = xml.getElementsByTagName('nome')[0].value
-        var dataAtualizacao = xml.getElementsByTagName('dataAtualizacao')[0].value
-        var situacao = xml.getElementsByTagName('situacao')[0].value
-        this.setState({
-            verificarDados: 0,
-        });
-        this.handleChange(null, 'especialidades', especialidades)
-        this.handleChange(null, 'nome', nome)
-        this.handleChange(null, 'dataAtualizacaoCFM', dataAtualizacao)
-        if (situacao == 'A') {
-            this.handleChange(null, 'situacao', "Ativo")
+        try {
+            console.log(xmlText);
+            var XMLParser = require('react-xml-parser');
+            var xml = new XMLParser().parseFromString(xmlText);
+            var codigoErro = xml.getElementsByTagName('codigoErro')[0].value;
+            console.log(codigoErro);
+            if (codigoErro == '0000') {
+                this.setState({
+                    verificarDados: 0,
+                });
+                var especialidades = xml.getElementsByTagName('especialidade')[0].value;
+                var nome = xml.getElementsByTagName('nome')[0].value
+                var dataAtualizacao = xml.getElementsByTagName('dataAtualizacao')[0].value
+                var situacao = xml.getElementsByTagName('situacao')[0].value
+                this.handleChange(null, 'especialidades', especialidades)
+                this.handleChange(null, 'nome', nome)
+                this.handleChange(null, 'dataAtualizacaoCFM', dataAtualizacao)
+                if (situacao == 'A') {
+                    this.handleChange(null, 'situacao', "Ativo")
+                } else {
+                    this.handleChange(null, 'situacao', "Inativo")
+                }
+            } else {
+                this.setState({
+                    verificarDados: 0,
+                    consultaErro: 1,
+                });
+                //this.sweetAlertHandler({ title: 'Dados inválidos!', type: 'error', text: ' Verifique se o CRM, CPF, UF ou Data De Nascimento foram digitados corretamente!' })
+            }
+        } catch (error) {
+            throw (error);
         }
     }
 
@@ -199,7 +217,7 @@ class MedicosCrud extends React.Component {
                     this.salvarUsuario(uid)
                 })
                 .catch(error => {
-                    this.sweetAlertHandler({ title: 'Erro ao atualizar registro!', type: 'error', text: '' })
+                    this.sweetAlertHandler({ title: 'Erro ao fazer registro!', type: 'error', text: '' })
                 });
 
         } else {
@@ -219,10 +237,10 @@ class MedicosCrud extends React.Component {
         this.sweetAlertHandler({ title: 'Preencha todos os campos corretamente!', type: 'error', text: '' })
     };
 
-    matchPassword = (value) => {
+    /* matchPassword = (value) => {
         return value && value === this.props.medico.senha;
     };
-
+ */
     formatDateToString(value) {
         var dia = value.getDate();
         var mes = value.getMonth() + 1;
@@ -298,10 +316,12 @@ class MedicosCrud extends React.Component {
                                                 className='form-control'
                                                 mask={[/[0-9]/, /[0-9]/, /[0-9]/, '.', /[0-9]/, /[0-9]/, /[0-9]/, '.', /[0-9]/, /[0-9]/, /[0-9]/, '-', /[0-9]/, /[0-9]/]}
                                                 placeholder="CPF"
+                                                minLength = "14"
                                                 errorMessage="Campo de CPF é obrigatório"
                                                 required value={this.props.medico.cpf}
                                                 onChange={(e) => this.handleChange(e, 'cpf', e.target.value)}
                                                 autoComplete="off"
+                                                
                                             />
                                         </Form.Group>
                                         <Form.Group as={Col} md="6">
@@ -314,6 +334,7 @@ class MedicosCrud extends React.Component {
                                                         selected={this.formatStringToDate()}
                                                         onChange={(value, e) => this.handleChange(e, 'dataNasc', this.formatDateToString(value))}
                                                         showYearDropdown
+                                                        required
                                                         className="form-control"
                                                         locale="pt-BR"
                                                     />
@@ -323,8 +344,16 @@ class MedicosCrud extends React.Component {
                                                         {this.state.verificarDados != 0 ?
                                                             <span className="spinner-border spinner-border-sm mr-1" role="status" />
                                                             : null}
-                                                        Validar dados
-                                                </Button>
+                                                        {this.state.verificarDados != 0 ?
+                                                            'Validando...' : 'Validar dados'
+                                                        }
+                                                        {this.state.consultaErro > 0 ?
+                                                        <Notifications notification={this.state}></Notifications>
+                                                        : null
+                                                        }
+
+                                                        
+                                                    </Button>
                                                 </Col>
                                             </Row>
                                         </Form.Group>
