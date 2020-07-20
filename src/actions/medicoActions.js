@@ -104,53 +104,6 @@ export const medicoCriar = (uid) => {
     console.log(medico.crm);
     console.log(medico.uf);
     console.log(medico.cpf);
-    let envelope =
-        `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"\
-            xmlns:ser="http://servico.cfm.org.br/">\
-        <soapenv: Header/>\
-            <soapenv: Body>\
-                <web: Validar>\
-                    <crm>${medico.crm}</crm>\
-                    <uf>${medico.uf}</uf>\
-                    <cpf>${medico.cpf}</cpf>\
-                    <dataNascimento>${medico.dataNasc}</dataNascimento>\
-                    <chave>4BUX14QE</chave>\
-                </web: Validar>\
-    </soapenv: Body >\
-  </soapenv: Envelope >`;
-    console.log("ENVELOPE")
-    console.log(envelope);
-    
-    var serviceUrl = "https://ws.cfm.org.br:8080/WebServiceConsultaMedicos/ServicoConsultaMedicos";
-    axios.defaults.baseURL = 'http://olamed.com.br/';
-    axios.defaults.headers.post['Content-Type'] ='application/json;charset=utf-8';
-    axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*';
-    axios.get(serviceUrl, onSuccess, onFailure)
-    .then(resp => {
-    console.log("Funcionou");
-    })
-    .catch(error => {
-    console.log(error);
-    });
-
-
-
-    return;
-
-
-    let response = axios.post('https://ws.cfm.org.br:8080/WebServiceConsultaMedicos/ServicoConsultaMedicos', {
-        headers: [{"Access-Control-Allow-Origin": ""},
-                  {"Access-Control-Allow-Methods": "PUT, GET, POST, DELETE, OPTIONS"},
-                  {"Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization"},
-                 ], body: envelope,
-    });
-
-
-
-    response.then(res => {
-        console.log("axios entrou no then");
-        console.log(res.status);
-        console.log(res.statusText)
         var db = firebase.firestore();
         return async dispatch => {
             db.collection('users').doc(uid).set({
@@ -168,10 +121,6 @@ export const medicoCriar = (uid) => {
             });
             dispatch(medicoSetCurrent(medico))
         }
-    }).catch(err => {
-        console.log("axios entrou no catch");
-        console.log(err)
-    });
 }
 
 
