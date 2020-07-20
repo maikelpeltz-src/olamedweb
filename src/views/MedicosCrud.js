@@ -1,24 +1,30 @@
 import React from 'react';
 import Swal from 'sweetalert2';
+import './css/lista_medicos.css';
 import withReactContent from 'sweetalert2-react-content';
 import { Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { ValidationForm, TextInput, BaseFormControl, SelectGroup, FileInput, Checkbox, Radio } from 'react-bootstrap4-form-validation';
 import MaskedInput from 'react-text-mask';
 import validator from 'validator';
 import Aux from '../hoc/_Aux';
-import DatePicker from "react-datepicker";
+import pt from 'date-fns/locale/pt-BR';
+import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker";
 import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { medicoAuth, medicoCriar, medicoAtualizar, medicoSetField } from '../actions/';
 import AnimatedModal from '../App/components/AnimatedModal';
+import { store } from '../../src/index.js';
+import axios from 'axios';
+import {styleLine, styleDtPicker, styleBtCrm} from './css/crud_medicos';
 
+registerLocale('pt-BR', pt)
 
 class MaskWithValidation extends BaseFormControl {
     constructor(props) {
         super(props);
         this.inputRef = React.createRef();
         this.state = {
-            cancelar: 0
+            cancelar: 0,
         };
     }
 
@@ -43,17 +49,101 @@ class MaskWithValidation extends BaseFormControl {
         )
     }
 }
+
+
 class MedicosCrud extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             startDate: new Date(),
             medico: '',
-            id: localStorage.getItem('medico_editar')
+            id: localStorage.getItem('medico_editar'),
+            verificarDados: 0
         }
     }
     componentDidMount() {
 
+    }
+
+    chamarSoap() {
+        var medico = store.getState().medico;
+        if (medico.cpf != "" && medico.crm != "" && medico.cpf != "" && medico.dataNasc != "") {
+            this.setState({
+                verificarDados: 1,
+            });
+            let envelope =
+                `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://servico.cfm.org.br/">
+           <soapenv:Header/>
+           <soapenv:Body>
+               <ser:ConsultaCompleta>
+                 <crm>${medico.crm}</crm>
+                 <!--Optional:-->
+                 <uf>${medico.uf}</uf>
+                 <!--Optional:-->
+                 <cpf>${medico.cpf}</cpf>
+                 <!--Optional:-->
+                 <dataNascimento>${medico.dataNasc}</dataNascimento>
+                 <!--Optional:-->
+                 <chave>4BUX14QE</chave>
+               </ser:ConsultaCompleta>
+           </soapenv:Body>
+         </soapenv:Envelope>`;
+
+            //console.log(envelope);
+
+            var xmlhttp = new XMLHttpRequest();
+
+            // example data
+            const url = 'https://cors-anywhere.herokuapp.com/https://ws.cfm.org.br:8080/WebServiceConsultaMedicos/ServicoConsultaMedicos';
+
+            xmlhttp.open('POST', url, true);
+            xmlhttp.setRequestHeader('Content-Type', 'application/json'); //Obrigatorio API
+            xmlhttp.setRequestHeader('access_token', '4BUX14QE'); //Obrigatorio API
+            //var sr = '<?xml version="1.0" encoding="utf-8"?>' + envelope;
+            var sr = envelope;
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        //console.log(xmlhttp.response);
+                        alert(xmlhttp.response);
+                        this.loadXml(xmlhttp.response);
+
+                    }
+                    else {
+                        alert('Erro na chamada!');
+                    }
+                }
+            }
+
+            xmlhttp.send(sr);
+
+            const sampleHeaders = {
+                'user-agent': 'sampleTest',
+                'Content-Type': 'text/xml;charset=UTF-8',
+            };
+        }else{
+            alert("Complete os campos corretamente")
+        }
+    }
+
+    loadXml(xmlText) {
+        console.log(xmlText);
+        var XMLParser = require('react-xml-parser');
+        var xml = new XMLParser().parseFromString(xmlText);
+        var especialidades = xml.getElementsByTagName('especialidade')[0].value;
+        var nome = xml.getElementsByTagName('nome')[0].value
+        var dataAtualizacao = xml.getElementsByTagName('dataAtualizacao')[0].value
+        var situacao = xml.getElementsByTagName('situacao')[0].value
+        this.setState({
+            verificarDados: 0,
+        });
+        this.handleChange(null, 'especialidades', especialidades)
+        this.handleChange(null, 'nome', nome)
+        this.handleChange(null, 'dataAtualizacaoCFM', dataAtualizacao)
+        if (situacao == 'A') {
+            this.handleChange(null, 'situacao', "Ativo")
+        }
     }
 
     handleChange = (e, field, value) => {
@@ -74,12 +164,20 @@ class MedicosCrud extends React.Component {
         })
     }
 
+    onSuccess() {
+        return true;
+    }
+
+    onFailure() {
+        return true;
+    }
+
     async salvarUsuario(uid) {
         try {
             await this.props.medicoCriar(uid)
             this.cancelar();
         } catch (error) {
-            this.sweetAlertHandler({title: 'Erro ao salvar registro!', type: 'error', text: ''})
+            this.sweetAlertHandler({ title: 'Erro ao salvar registro!', type: 'error', text: '' })
         }
     }
     sweetAlertHandler = (alert) => {
@@ -92,33 +190,33 @@ class MedicosCrud extends React.Component {
     };
 
     handleSubmit = (e, formData, inputs) => {
-        e.preventDefault();           
+        e.preventDefault();
         if (this.state.id == '') {
-                var uid = '';
-                this.props.medicoAuth()
-                    .then((id) => {
-                        uid = id;
-                        this.salvarUsuario(uid)
-                    })
-                    .catch(error => {
-                        this.sweetAlertHandler({title: 'Erro ao atualizar registro!', type: 'error', text: ''})
-                    });
+            var uid = '';
+            this.props.medicoAuth()
+                .then((id) => {
+                    uid = id;
+                    this.salvarUsuario(uid)
+                })
+                .catch(error => {
+                    this.sweetAlertHandler({ title: 'Erro ao atualizar registro!', type: 'error', text: '' })
+                });
 
-            } else {
-                this.props.medicoAtualizar(this.state.id) //atualizar
-                    .then(e => {
-                        this.cancelar();
-                        this.sweetAlertHandler({title: 'Usuário atualizado com sucesso!', type: 'success', text: ''})
-                        return null;
-                    })
-                    .catch(error => {
-                        this.sweetAlertHandler({title: 'Erro ao atualizar registro!', type: 'error', text: ''})
-                    });
-            }
+        } else {
+            this.props.medicoAtualizar(this.state.id) //atualizar
+                .then(e => {
+                    this.cancelar();
+                    this.sweetAlertHandler({ title: 'Usuário atualizado com sucesso!', type: 'success', text: '' })
+                    return null;
+                })
+                .catch(error => {
+                    this.sweetAlertHandler({ title: 'Erro ao atualizar registro!', type: 'error', text: '' })
+                });
+        }
     };
 
     handleErrorSubmit = (e, formData, errorInputs) => {
-        this.sweetAlertHandler({title: 'Preencha todos os campos corretamente!', type: 'error', text: ''})
+        this.sweetAlertHandler({ title: 'Preencha todos os campos corretamente!', type: 'error', text: '' })
     };
 
     matchPassword = (value) => {
@@ -144,6 +242,10 @@ class MedicosCrud extends React.Component {
         return dataResult;
     }
 
+    async validaCRM() {
+        await this.props.medicoCriar('adsasd');
+    }
+
     render() {
         return (
             <Aux>
@@ -159,8 +261,10 @@ class MedicosCrud extends React.Component {
                                     <Form.Row>
                                         <Form.Group as={Col} md="6">
                                             <Form.Label htmlFor="crm">CRM</Form.Label>
-                                            <TextInput
+                                            <MaskWithValidation
                                                 name="crm"
+                                                className="form-control"
+                                                mask={[/[0-9]/, /[0-9]/, /[0-9]/, /[0-9]/, /[0-9]/, /[0-9]/]}
                                                 id="crm"
                                                 placeholder="CRM"
                                                 errorMessage="Campo de CRM é obrigatório"
@@ -176,7 +280,8 @@ class MedicosCrud extends React.Component {
                                                 name="uf"
                                                 id="uf"
                                                 placeholder="UF"
-                                                minlenght="2"
+                                                maxLength="2"
+                                                minLength="2"
                                                 required
                                                 errorMessage="Campo de UF é obrigatório"
                                                 value={this.props.medico.uf}
@@ -187,9 +292,11 @@ class MedicosCrud extends React.Component {
 
                                         <Form.Group as={Col} md="6">
                                             <Form.Label htmlFor="cpf">CPF</Form.Label >
-                                            <TextInput
+                                            <MaskWithValidation
                                                 name="cpf"
                                                 id="cpf"
+                                                className='form-control'
+                                                mask={[/[0-9]/, /[0-9]/, /[0-9]/, '.', /[0-9]/, /[0-9]/, /[0-9]/, '.', /[0-9]/, /[0-9]/, /[0-9]/, '-', /[0-9]/, /[0-9]/]}
                                                 placeholder="CPF"
                                                 errorMessage="Campo de CPF é obrigatório"
                                                 required value={this.props.medico.cpf}
@@ -199,19 +306,34 @@ class MedicosCrud extends React.Component {
                                         </Form.Group>
                                         <Form.Group as={Col} md="6">
                                             <Form.Label htmlFor="cpf">Data Nasc.</Form.Label >
-                                            <br></br>
-                                            <DatePicker
-                                                dateFormat="dd/MM/yyyy"
-                                                selected={this.formatStringToDate()}
-                                                onChange={(value, e) => this.handleChange(e, 'dataNasc', this.formatDateToString(value))}
-                                                showYearDropdown
-                                                className="form-control" />
+                                            <Row style={styleLine}>
+                                                <br></br>
+                                                <Col style={styleDtPicker}>
+                                                    <DatePicker
+                                                        dateFormat="dd/MM/yyyy"
+                                                        selected={this.formatStringToDate()}
+                                                        onChange={(value, e) => this.handleChange(e, 'dataNasc', this.formatDateToString(value))}
+                                                        showYearDropdown
+                                                        className="form-control"
+                                                        locale="pt-BR"
+                                                    />
+                                                </Col>
+                                                <Col style={styleBtCrm}>
+                                                    <Button onClick={(e) => { this.chamarSoap() }}>
+                                                        {this.state.verificarDados != 0 ?
+                                                            <span className="spinner-border spinner-border-sm mr-1" role="status" />
+                                                            : null}
+                                                        Validar dados
+                                                </Button>
+                                                </Col>
+                                            </Row>
                                         </Form.Group>
                                         <Form.Group as={Col} md="6">
                                             <Form.Label htmlFor="nome">Nome</Form.Label>
                                             <TextInput
                                                 name="nome"
                                                 id="nome"
+                                                maxLength="50"
                                                 placeholder="Nome"
                                                 className="form-control"
                                                 required
@@ -290,7 +412,6 @@ class MedicosCrud extends React.Component {
                                                 autoComplete="off"
                                             />
                                         </Form.Group>
-
                                         <Form.Group as={Col} md="6">
                                             <Form.Label htmlFor="email">Email</Form.Label>
                                             <TextInput
