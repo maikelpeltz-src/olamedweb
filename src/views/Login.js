@@ -135,7 +135,7 @@ class Login extends React.Component {
                                 </div>
                                 <button className="btn btn-login shadow-2 mb-4" onClick={() => this.tryLogin()}>Login</button>
                                 <p className="mb-2 text-muted p-color">Esqueceu a senha? <a onClick = {(e) => (this.addNotificationFuncionalidadeNaoDesenvolvida(e))}>Redefinir senha</a></p>
-                                <p className="mb-0 text-muted p-color">Não possuí uma conta? <NavLink to="/auth/signup-1">Criar conta</NavLink></p>
+                                <p className="mb-0 text-muted p-color">Não possuí uma conta? <a onClick = {(e) => (this.addNotificationFuncionalidadeNaoDesenvolvida(e))}>Redefinir senha</a></p>
                             </div>
                         </div>
                     </div>
