@@ -27,6 +27,7 @@ const ComingSoon = React.lazy(() => import('./Demo/Maintenance/ComingSoon'));
 
 //-------------NOSSOS ITENS SEM MENU !!! -------------- //
 const Login = React.lazy(() => import('./views/Login'));
+const Logoff = React.lazy(() => import('./views/Logoff'));
 
 const route = [
     { path: '/landing', exact: true, name: 'Landing Page', component: Landing },
@@ -56,6 +57,7 @@ const route = [
 
 //-------------NOSSOS ITENS SEM MENU !!! -------------- //
     { path: '/login', exact: true, name: 'Login', component: Login },
+    { path: '/logoff', exact: true, name: 'Logoff', component: Logoff },
 ];
 
 export default route;

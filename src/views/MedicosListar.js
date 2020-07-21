@@ -5,7 +5,7 @@ import './css/lista_medicos.css';
 import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Aux from "../hoc/_Aux";
-import { medicosLista, medicoSetAtual, medicoSetAtivo } from '../actions/';
+import { medicosLista, medicoSetAtual, medicoSetAtivo, validarUsuario } from '../actions/';
 import $ from 'jquery';
 import ButtonGrid from '../components/buttonGrid';
 
@@ -235,23 +235,38 @@ class MedicosListar extends React.Component {
 
     }
 
-    // VERIFICA ESTADO PARA REDIRECIONAR PARA O CRUD DE MEDICO
-    rediretCrud() {
+  
+    carregarTable(){
+        if(this.props.medicos[0] === undefined){
+            // do nothing
+        } else{
+            this.atable()
+        }
+    }
+
+    carregarEvents(){
+        if(this.props.medicos[0] === undefined) {
+            // do nothing
+        }
+        else{
+            this.addEvent();
+        }
+    }
+
+    verificarPermissao(){
+        if(validarUsuario() == false){
+            return <Redirect to="/login" />
+        }else{
+            return null;
+        }
+    }
+
+    verificarRedirectCrud(){
         if (this.state.editar > 0) {
             return <Redirect to="medicos/cadastrar" />;
         } else {
             return this.null;
         }
-    }
-
-    carregaEvents(){
-        if(this.props.medicos[0] === undefined) {
-            //sem dados
-        }
-        else{
-            this.addEvent();
-        }
-    
     }
 
     render() {
@@ -260,11 +275,11 @@ class MedicosListar extends React.Component {
                 <Row>
                     <Col>
                         <Card.Header>
-                         
+                            {this.verificarPermissao()}
+                            {this.verificarRedirectCrud()}
+                            {this.carregarTable()}
+                            {this.carregarEvents()}
                             <Button className="btn btn-success btn-cadastrar" href='/medicos/cadastrar' onClick={(e) => this.onClickMedicoList(e, 0)}> Cadastrar </Button>
-                            {this.rediretCrud()}
-                            {this.props.medicos[0] === undefined ? null : this.atable()}
-                            {this.carregaEvents()}
                             <Card.Title as="h5">
                                 Médicos
                             </Card.Title>

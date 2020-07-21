@@ -11,7 +11,7 @@ import pt from 'date-fns/locale/pt-BR';
 import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker";
 import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { medicoAuth, medicoCriar, medicoAtualizar, medicoSetField } from '../actions/';
+import { medicoAuth, medicoCriar, medicoAtualizar, medicoSetField, validarUsuario } from '../actions/';
 import AnimatedModal from '../App/components/AnimatedModal';
 import { store } from '../../src/index.js';
 import axios from 'axios';
@@ -273,6 +273,22 @@ class MedicosCrud extends React.Component {
         await this.props.medicoCriar('adsasd');
     }
 
+    verificarPermissao(){
+        if(validarUsuario() == false){
+            return <Redirect to="/login" />
+        }else{
+            return null;
+        }
+    }
+
+    verificarRedirectListagem(){
+        if(this.state.cancelar > 0){
+            return <Redirect to="/medicos" />;
+        }else{
+            return null;
+        }
+    }
+
     render() {
         return (
             <Aux>
@@ -280,9 +296,10 @@ class MedicosCrud extends React.Component {
                 <Row>
                     <Col>
                         <Card>
+                            {this.verificarPermissao()}
+                            {this.verificarRedirectListagem()}
                             <Card.Header>
                                 <Card.Title as="h5">Cadastrar Médico</Card.Title>
-                                {this.state.cancelar > 0 ? <Redirect to="/medicos" /> : null}
                             </Card.Header>
                             <Card.Body>
                                 <ValidationForm onSubmit={this.handleSubmit} onErrorSubmit={this.handleErrorSubmit}>

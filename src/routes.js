@@ -5,7 +5,7 @@ window.jQuery = $;
 window.$ = $;
 global.jQuery = $;
 
-const DashboardDefault = React.lazy(() => import('./Demo/Dashboard/Default'));
+
 const DashboardEcommerce = React.lazy(() => import('./Demo/Dashboard/Ecommerce'));
 const DashboardCrm = React.lazy(() => import('./Demo/Dashboard/Crm'));
 const DashboardAnalytics = React.lazy(() => import('./Demo/Dashboard/Analytics'));
@@ -111,6 +111,7 @@ const OtherSamplePage = React.lazy(() => import('./Demo/Other/SamplePage'));
 //-------------NOSSOS ITENS --------------------//
 const MedicosListar = React.lazy(() => import('./views/MedicosListar'));
 const MedicosCrud = React.lazy(() => import('./views/MedicosCrud'));
+const DashboardDefault = React.lazy(() => import('./views/Dashboard'));
 
 
 const routes = [

@@ -1,14 +1,25 @@
 import React from 'react';
+import { NavLink, Redirect } from 'react-router-dom';
 import {Row, Col, Card, Table, Tabs, Tab} from 'react-bootstrap';
+import { validarUsuario } from '../actions/';
 
-import Aux from "../../hoc/_Aux";
-import DEMO from "../../store/constant";
+import Aux from "../hoc/_Aux";
+import DEMO from "../store/constant";
 
-import avatar1 from '../../assets/images/user/avatar-1.jpg';
-import avatar2 from '../../assets/images/user/avatar-2.jpg';
-import avatar3 from '../../assets/images/user/avatar-3.jpg';
+import avatar1 from '../assets/images/user/avatar-1.jpg';
+import avatar2 from '../assets/images/user/avatar-2.jpg';
+import avatar3 from '../assets/images/user/avatar-3.jpg';
 
 class Dashboard extends React.Component {
+
+    verificarPermissao(){
+        if(validarUsuario() == false){
+            return <Redirect to="/login" />
+        }else{
+            return null;
+        }
+    }
+
     render() {
         const tabContent = (
             <Aux>
@@ -73,6 +84,7 @@ class Dashboard extends React.Component {
             <Aux>
                 <Row>
                     <Col md={6} xl={4}>
+                        {this.verificarPermissao()}
                         <Card className='card-event'>
                             <Card.Body >
                                 <div className="row align-items-center justify-content-center">

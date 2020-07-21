@@ -19,7 +19,7 @@ const userLogout = () => ({
 });
 
 
-export const logOff = (email, password) => dispatch => {
+export const logOff = () => dispatch => {
     return (
         firebase
             .auth()

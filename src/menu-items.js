@@ -57,7 +57,20 @@ export default {
                 }
                 
             ]
-        }
-      
+        },
+		{
+			id: 'logoff',
+			title: '',
+			type: 'group',
+			icon: 'icon-ui',
+			children: [
+				{
+					id: 'medicos',
+					title: 'Logoff',
+					type: 'item',
+					url: '/logoff'
+				}
+			]
+		}
     ]
 }
