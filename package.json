@@ -39,7 +39,7 @@
     "font-awesome": "^4.7.0",
     "fullcalendar-reactwrapper": "^1.0.7",
     "google-maps-react": "^2.0.6",
-    "highcharts": "^7.2.1",
+    "highcharts": "^9.0.0",
     "highcharts-react-official": "^2.2.2",
     "jodit-react": "^1.0.51",
     "jquery": "^3.5.1",
