@@ -46,7 +46,7 @@
     "jszip": "^3.5.0",
     "moment": "^2.27.0",
     "nib-core": "^0.3.8",
-    "node-sass": "^4.14.1",
+    "node-sass": "^7.0.0",
     "pdfmake": "^0.1.66",
     "peity-react": "0.0.7",
     "pnotify": "^4.0.1",
